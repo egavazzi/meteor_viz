@@ -32,11 +32,15 @@ end
 close(hid)
 
 ## Plot the data
+set_theme!(theme_black())
+
 f = Figure()
 ax = Axis3(f[1, 1])
-lines!(ax, lines_data; color = lines_color, alpha = 0.1, transparency = true, colorrange = (10000, 70000), colormap=:turbo)
+lines!(ax, lines_data; color = lines_color, alpha = 0.1, colorrange = (10000, 70000), colormap=:turbo, overdraw=true)
 xlims!(-10 * 150e9, 10 * 150e9)
 ylims!(-10 * 150e9, 10 * 150e9)
 zlims!(-10 * 150e9, 10 * 150e9)
 Colorbar(f[1, 2], colorrange = (10000, 70000), colormap=:turbo)
 display(f)
+
+set_theme!()
