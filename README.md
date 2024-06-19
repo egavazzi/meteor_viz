@@ -1,4 +1,4 @@
-Scripts to vizualize meteor trajectories.
+Scripts to vizualize meteor trajectories, harnessing the power of [Makie](https://docs.makie.org).
 
 
 
