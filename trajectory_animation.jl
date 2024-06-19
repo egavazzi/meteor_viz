@@ -68,7 +68,7 @@ function plotfun()
         println("entering draw loop")
         isopen(f.scene) || break # exit if window is closed
  #       color_idx=0
-        for i_t in 1:10:n_t
+        for i_t in n_t:-10:1#1:10:n_t
             isopen(f.scene) || break  # exit if window is closed
 #            push!(colors[], color_idx)            
             for i = 1:n_lines
