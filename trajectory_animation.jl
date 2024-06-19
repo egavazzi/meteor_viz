@@ -65,7 +65,7 @@ function plotfun()
     
     # animate
     while true
-
+        println("entering draw loop")
         isopen(f.scene) || break # exit if window is closed
  #       color_idx=0
         for i_t in 1:10:n_t
@@ -78,19 +78,21 @@ function plotfun()
                     popfirst!(pointlist[i][])
                 end
             end
+#            println("update positions")
   #          color_idx+=1
 #            notify(colors)
             sleep(0.0000001)
-        end
-        # randomize events to plot
-        for i = 1:n_lines
-            evidx[i]=Int(round(rand()*n_events+1))
-            linelist[i]= lines!(o, color = vel[evidx[i]], colorrange=(10e3,70e3), colormap=:turbo, transparency = true, alpha=0.2)        
         end
         for i = 1:n_lines
             pointlist[i].val=Point3f[]
             
             notify(pointlist[i])
+        end
+        
+        # randomize events to plot
+        for i = 1:n_lines
+            evidx[i]=Int(round(rand()*n_events+1))
+            linelist[i]= lines!(pointlist[i], color = vel[evidx[i]+1], colorrange=(10e3,70e3), colormap=:turbo, transparency = true, alpha=0.2)        
         end
 #        colors.val=Int[]
  #       notify(colors)
