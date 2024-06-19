@@ -20,6 +20,8 @@ function plotfun()
     for i in 1:length(eks)
         push!(event_keys,parse(Int,eks[i]))
     end
+
+    massive_states = read(hid["long_term_massive_states"])
     
     # initialize arrays
     n_events = length(keys(hid["events"]))
@@ -29,22 +31,34 @@ function plotfun()
     @showprogress for (i, i_event) in enumerate(keys(hid["events"]))
         string_dataset = "events/" * i_event * "/orbit"
         data = read(hid[string_dataset])
-        
-        lines_data[n_t*i .+ (1:n_t), :] .= data[1:end, 1:3]
+        # 
+        lines_data[n_t*(i-1) .+ (1:n_t), :] .= data[1:end, 1:3]
     end
 
     close(hid)
     
     set_theme!(theme_black())
     f = Figure()
-    ax = Axis3(f[1, 1])
+    ax = Axis3(f[1, 1],perspectiveness=0.4)
     max_au=5
     xlims!(-max_au * 150e9, max_au * 150e9)
     ylims!(-max_au * 150e9, max_au * 150e9)
     zlims!(-max_au * 150e9, max_au * 150e9)
     display(f)
 
+    #println(size(massive_states))
+    n_planets = size(massive_states)[1]
+    for planet_i in 1:n_planets
+        lines!(massive_states[planet_i, 1:10:end, 1:3],color=:white,alpha=0.1)
+    end
 
+    
+    planet_positions = Observable(fill(NaN, (n_planets, 3)))
+    
+    scatter!(planet_positions,
+             color=:white,
+             overdraw=true)
+    
     pointlist=[]
     linelist=[]
     evidx=[]
@@ -70,9 +84,10 @@ function plotfun()
  #       color_idx=0
         for i_t in n_t:-10:1#1:10:n_t
             isopen(f.scene) || break  # exit if window is closed
-#            push!(colors[], color_idx)            
+            #            push!(colors[], color_idx)
+            planet_positions[]=massive_states[1:n_planets,i_t,1:3]
             for i = 1:n_lines
-                push!(pointlist[i][], lines_data[evidx[i]*n_t + i_t, :])
+                push!(pointlist[i][], lines_data[(evidx[i]-1)*n_t + i_t, :])
                 notify(pointlist[i]  )
                 if length(pointlist[i][]) > n_colors
                     popfirst!(pointlist[i][])
@@ -83,19 +98,21 @@ function plotfun()
 #            notify(colors)
             sleep(0.0000001)
         end
-        for i = 1:n_lines
-            pointlist[i].val=Point3f[]
-            
-            notify(pointlist[i])
-        end
         
-        # randomize events to plot
-        for i = 1:n_lines
-            evidx[i]=Int(round(rand()*n_events+1))
-            linelist[i]= lines!(pointlist[i], color = vel[evidx[i]+1], colorrange=(10e3,70e3), colormap=:turbo, transparency = true, alpha=0.2)        
-        end
-#        colors.val=Int[]
- #       notify(colors)
+#         println("randomizing new meteors")
+#         for i = 1:n_lines
+#             pointlist[i].val=Point3f[]
+            
+#             notify(pointlist[i])
+#         end
+        
+#         # randomize events to plot
+#         for i = 1:n_lines
+#             evidx[i]=Int(round(rand()*n_events+1))
+#             linelist[i]= lines!(pointlist[i], color = vel[evidx[i]+1], colorrange=(10e3,70e3), colormap=:turbo, transparency = true, alpha=0.2)        
+#         end
+# #        colors.val=Int[]
+#  #       notify(colors)
     end
 end
 
