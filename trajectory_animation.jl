@@ -21,6 +21,8 @@ function plotfun()
         push!(event_keys,parse(Int,eks[i]))
     end
 
+    origin = fill(0.0,(3))
+    
     massive_states = read(hid["long_term_massive_states"])
     
     # initialize arrays
@@ -75,8 +77,7 @@ function plotfun()
 #        l.colorrange = (0, n_colors)#ceil(n_t/10))
         push!(linelist,l)
     end
-    
-    
+
     # animate
     while true
         println("entering draw loop")
@@ -93,9 +94,28 @@ function plotfun()
                     popfirst!(pointlist[i][])
                 end
             end
-#            println("update positions")
-  #          color_idx+=1
-#            notify(colors)
+            
+            view_vel=0.001
+            on(events(f.scene).keyboardbutton) do event
+                if event.action == Keyboard.press || event.action == Keyboard.repeat
+                    if event.key == Keyboard.w
+                        println("w")
+                        origin[1]+=view_vel*150e9
+                    end
+                    if event.key == Keyboard.a
+                        println("a")
+                        origin[2]=view_vel*150e9                                                
+                    end
+                    if event.key == Keyboard.s
+                        println("s")
+                        origin[1]-=view_vel*150e9                        
+                    end
+                    if event.key == Keyboard.d
+                        println("d")
+                        origin[2]-=view_vel*150e9                                                
+                    end
+                end
+            end
             sleep(0.0000001)
         end
         
