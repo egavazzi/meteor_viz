@@ -37,15 +37,43 @@ function plotfun()
     # origin = fill(0.0, (3))
     set_theme!(theme_black())
     fig = Figure()
-    ticks_AU_format(val) = map(v -> string(v) * " AU", val)
-    ax = Axis3(fig[1, 1], perspectiveness = 0.4, xtickformat = ticks_AU_format,
-               ytickformat = ticks_AU_format, ztickformat = ticks_AU_format)
+    ticks_AU_format(val) = map(v -> string(round(Int, v)) * " AU", val)
     max_au = 5 # TODO: use as function argument
-    xlims!(-max_au, max_au)
-    ylims!(-max_au, max_au)
-    zlims!(-max_au, max_au)
+    # Implementation with Axis3 (no zoom possible)
+    # ax = Axis3(fig[1, 1], perspectiveness = 0.4, xtickformat = ticks_AU_format,
+    #            ytickformat = ticks_AU_format, ztickformat = ticks_AU_format)
+    # xlims!(-max_au, max_au)
+    # ylims!(-max_au, max_au)
+    # zlims!(-max_au, max_au)
+    # Implementation with LScene (possible to fly through the data)
+    ax = LScene(fig[1, 1])
+    cc = Makie.Camera3D(ax.scene, projectiontype = Makie.Perspective,
+                        eyeposition = Vec3f(30, 30, 10), lookat = Vec3f(0), center = false)
+    #=
+    DISCLAIMER:
+    What follows is a VERY strange syntax that I have never seen in Makie.
+    From what I understand we are putting our hands directly in some kind of internals, as
+    these things are not possible to modify with the public API (yet).
+    =#
+    axis = ax.scene[OldAxis]
+    # axis[:ticks, :ranges] = (-max_au:max_au, -max_au:max_au, -max_au:max_au)
+    axis[:ticks, :formatter] = ticks_AU_format
+
+    # Add button to recenter the camera
+    fig[2, 1] = buttongrid = GridLayout(tellwidth = false)
+    button_center_cam = buttongrid[1, 1] = Button(fig, label = "Reset camera", labelcolor = :black)
+    on(button_center_cam.clicks) do _
+        update_cam!(ax.scene, Vec3f(30, 30, 10), Vec3f(0))
+    end
+    button_center_view = buttongrid[1, 2] = Button(fig, label = "Center view", labelcolor = :black)
+    on(button_center_view.clicks) do _
+        cc.lookat[] = Vec3f(0)
+        update_cam!(ax.scene)
+    end
+
     display(fig)
-    set_theme!() # reset
+    set_theme!() # reset the theme
+
 
     # Draw the planets orbits
     n_planets = size(massive_states, 1)
@@ -65,13 +93,18 @@ function plotfun()
         push!(meteor_idx, rand(1:n_events)) # randomize the meteors to be animated
         l = lines!(meteor_pos[i], color = velocity[event_keys[meteor_idx[i]] + 1],
                    colorrange = (10e3, 70e3), colormap = :turbo, transparency = true,
-                   alpha = 0.2)
+                   alpha = 0.2, linewidth = 2)
         push!(linelist, l)
     end
 
+
+
+
+
+
     ## Animate
-    trajectory_length = 10 # how long the individual meteor orbit "traces" should be
-    time_steps = 10 # size of the time jumps in the animation
+    trajectory_length = 25 # how long the individual meteor orbit "traces" should be
+    time_steps = 5 # size of the time jumps in the animation
     while true
         println("entering draw loop")
         isopen(fig.scene) || break # exit if window is closed
@@ -92,28 +125,6 @@ function plotfun()
                     popfirst!(meteor_pos[i][])
                 end
             end
-
-            # view_velocity=0.001
-            # on(events(fig.scene).keyboardbutton) do event
-            #     if event.action == Keyboard.press || event.action == Keyboard.repeat
-            #         if event.key == Keyboard.w
-            #             println("w")
-            #             origin[1]+=view_velocity*150e9
-            #         end
-            #         if event.key == Keyboard.a
-            #             println("a")
-            #             origin[2]=view_velocity*150e9
-            #         end
-            #         if event.key == Keyboard.s
-            #             println("s")
-            #             origin[1]-=view_velocity*150e9
-            #         end
-            #         if event.key == Keyboard.d
-            #             println("d")
-            #             origin[2]-=view_velocity*150e9
-            #         end
-            #     end
-            # end
             sleep(0.0000001)
         end
 
