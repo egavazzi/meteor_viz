@@ -117,6 +117,12 @@ function plotfun()
             sleep(0.0000001)
         end
 
+        # Erase the old meteor position values. This is to avoid the weird "splashing" effect
+        # at the beginning of the new animation when meteor_pos contains values from the
+        # beginning and the end of the orbit.
+        for i in 1:n_meteors2plot
+            meteor_pos[i][] = Float64[]
+        end
 
         #         println("randomizing new meteors")
         #         for i = 1:n_meteors2plot
